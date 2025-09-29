@@ -30,6 +30,7 @@ public class UserController {
     @Autowired
     private AuthService authService;
 
+
     @PostMapping("/api/user/register")
     public ResponseEntity<UserRegisterCommand> register(@Valid @RequestBody UserRegisterCommand request) {
         UserRegisterCommand response = authService.registerUser(request);

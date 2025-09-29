@@ -70,24 +70,12 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/api/user/login",
                                 "/api/user/register",
-                                "/api/admin/register",
                                 "/api/otp/generate/email",
                                 "/api/otp/validate",
                                 "/api/user/reset-password",
                                 "/api/user/forgot-password",
-                                "/api/refer/update/*",
-                                "/api/refer/add",
-                                "/api/refers/referral-summary",
-                                "/api/refers/referral-summary/byround/mycode",
-                                "/api/refer/lookup/*",
-                                "/api/excel/lookup/all",
-                                "/api/excel/lookup/concleveCode/*/memberCode/*",
-                                "/api/refers/all-enriched",
                                 "/api/admin/round/set",
-                                "/api/admin/round/get",
-                                "/api/excel/upload",
-                                "/api/supervisor/register",
-                                "/api/conclave/lookup/all/active"
+                                "/api/admin/round/get"
                         ).permitAll()
 
                         // user
