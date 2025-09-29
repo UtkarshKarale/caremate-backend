@@ -1,0 +1,76 @@
+# ==============================
+# Java / JVM
+# ==============================
+*.class
+*.jar
+*.war
+*.ear
+*.iml
+*.log
+
+# Compiled class files
+**/target/
+**/build/
+
+# Maven / Gradle
+/.mvn/
+!/mvnw
+!/mvnw.cmd
+.gradle/
+/build/
+
+# ==============================
+# Spring Boot
+# ==============================
+# Ignore Spring Boot fat jar build outputs
+*.jar
+*.war
+
+# ==============================
+# IDEs
+# ==============================
+# IntelliJ IDEA
+/.idea/
+/*.iws
+/*.iml
+/*.ipr
+
+# Eclipse
+/.classpath
+/.project
+/.settings/
+
+# VS Code
+.vscode/
+
+# ==============================
+# OS Files
+# ==============================
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Linux
+*~
+.nfs*
+
+# ==============================
+# Logsn
+# ==============================
+*.log
+logs/
+*.out
+
+# ==============================
+# Others
+# ==============================
+# Temporary files
+*.tmp
+*.swp
+*.swo
