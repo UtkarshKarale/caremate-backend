@@ -19,7 +19,7 @@ public class UserDetailsImpl implements UserDetails {
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         // Assuming your User entity has a single role stored in 'roles' field
-        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRoles().name()));
+        return List.of(new SimpleGrantedAuthority( user.getRoles().name()));
     }
 
     @Override

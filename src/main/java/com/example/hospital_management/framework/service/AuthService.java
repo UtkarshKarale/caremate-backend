@@ -30,7 +30,7 @@ public class AuthService {
     }
 
     public UserRegisterCommand registerUser(UserRegisterCommand command) {
-        command.setRoles(UserRoles.ROLE_USER);
+        command.setRoles(UserRoles.USER);
         return userService.registerUser(command);
     }
 
