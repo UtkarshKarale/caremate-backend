@@ -13,9 +13,9 @@
 	</parent>
 
 	<groupId>com.example</groupId>
-	<artifactId>hospital_management</artifactId>
+	<artifactId>caremate</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>hospital_management</name>
+	<name>caremate</name>
 	<description>Demo project for Spring Boot</description>
 
 	<properties>
