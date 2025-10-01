@@ -1,6 +1,7 @@
 package com.example.caremate.user.service;
 
 import com.example.caremate.framework.model.UserRoles;
+import com.example.caremate.user.command.DoctorRegisterCommand;
 import com.example.caremate.user.command.ResetPasswordCommand;
 import com.example.caremate.user.command.UserRegisterCommand;
 import com.example.caremate.user.command.UserUpdateCommand;
@@ -164,5 +165,42 @@ public class UserService {
         userRepository.save(user);
 
         return "Password has been successfully reset.";
+    }
+
+    public DoctorRegisterCommand registerDoctor(DoctorRegisterCommand request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already in use: " + request.getEmail());
+        }
+
+        if (request.getPassword() == null || request.getPassword().length() <= 5) {
+            throw new RuntimeException("Password must be at least 5 characters long");
+        }
+
+        if (userRepository.existsByMobile(request.getMobile())) {
+            throw new RuntimeException("Mobile already registered: " + request.getMobile());
+        }
+
+        User newUser = new User();
+        newUser.setEmail(request.getEmail());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        newUser.setFullName(request.getFullName());
+        newUser.setMobile(request.getMobile());
+        newUser.setRoles(request.getRoles());
+        newUser.setStatus(UserStatus.ACTIVE);
+        newUser.setCreatedOn(new Date());
+        newUser.setSpecialist(request.getSpecialist());
+        newUser.setLocation(request.getLocation());
+
+        userRepository.save(newUser);
+
+        DoctorRegisterCommand response = new DoctorRegisterCommand();
+        response.setEmail(newUser.getEmail());
+        response.setFullName(newUser.getFullName());
+        response.setMobile(newUser.getMobile());
+        response.setRoles(newUser.getRoles());
+        response.setSpecialist(newUser.getSpecialist());
+        response.setLocation(newUser.getLocation());
+        response.setMessage("User registered successfully!");
+        return response;
     }
 }

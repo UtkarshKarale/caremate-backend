@@ -3,6 +3,7 @@ package com.example.caremate.user.controller;
 import com.example.caremate.framework.dto.AuthRequest;
 import com.example.caremate.framework.dto.AuthResponse;
 import com.example.caremate.framework.service.AuthService;
+import com.example.caremate.user.command.DoctorRegisterCommand;
 import com.example.caremate.user.command.ResetPasswordCommand;
 import com.example.caremate.user.command.UserRegisterCommand;
 import com.example.caremate.user.command.UserUpdateCommand;
@@ -34,6 +35,13 @@ public class UserController {
     @PostMapping("/api/user/register")
     public ResponseEntity<UserRegisterCommand> register(@Valid @RequestBody UserRegisterCommand request) {
         UserRegisterCommand response = authService.registerUser(request);
+        response.setPassword(null);
+        return ResponseEntity.ok(response);
+    }
+
+    @PostMapping("/api/doctor/register")
+    public ResponseEntity<DoctorRegisterCommand> registerDoctor(@Valid @RequestBody DoctorRegisterCommand request){
+        DoctorRegisterCommand response = authService.registerDoctor(request);
         response.setPassword(null);
         return ResponseEntity.ok(response);
     }

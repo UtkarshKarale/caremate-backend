@@ -41,6 +41,15 @@ public class User {
     @Column(name = "created_on", nullable = false, updatable = false)
     private Date createdOn = new Date();
 
+    @Column(nullable = true, unique = false)
+    private String specialist;
+
+    @Column(nullable = true, unique = false)
+    private String location;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    @Column(name = "updated_on")
+    private Date updatedOn;
 
     public Long getId() {
         return id;
@@ -104,5 +113,26 @@ public class User {
 
     public void setCreatedOn(Date createdOn) {
         this.createdOn = createdOn;
+    }
+
+    public String getSpecialist(){
+        return specialist;
+    }
+    public void setSpecialist(String specialist){
+        this.specialist= specialist;
+    }
+
+    public String getLocation(){
+        return location;
+    }
+    public void setLocation(String location){
+        this.location = location;
+    }
+
+    public Date getUpdatedOn(){
+        return updatedOn;
+    }
+    public void setUpdatedOn(Date updatedOn){
+        this.updatedOn= updatedOn;
     }
 }

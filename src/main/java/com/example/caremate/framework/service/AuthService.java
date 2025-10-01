@@ -4,6 +4,7 @@ import com.example.caremate.framework.dto.AuthRequest;
 import com.example.caremate.framework.dto.AuthResponse;
 import com.example.caremate.framework.model.UserRoles;
 import com.example.caremate.framework.security.JwtUtil;
+import com.example.caremate.user.command.DoctorRegisterCommand;
 import com.example.caremate.user.command.UserRegisterCommand;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.repository.UserRepository;
@@ -32,6 +33,11 @@ public class AuthService {
     public UserRegisterCommand registerUser(UserRegisterCommand command) {
         command.setRoles(UserRoles.USER);
         return userService.registerUser(command);
+    }
+
+    public DoctorRegisterCommand registerDoctor(DoctorRegisterCommand command){
+        command.setRoles(UserRoles.DOCTOR);
+        return userService.registerDoctor(command);
     }
 
     public AuthResponse login(AuthRequest request) {
