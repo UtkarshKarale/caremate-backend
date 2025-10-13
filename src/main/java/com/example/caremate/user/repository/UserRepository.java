@@ -1,5 +1,6 @@
 package com.example.caremate.user.repository;
 
+import com.example.caremate.framework.model.UserRoles;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.entity.UserStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmail(String email);
 
     boolean existsByMobile(String mobile);
+
+    long countByRoles(UserRoles role);
 }

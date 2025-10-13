@@ -2,11 +2,9 @@ package com.example.caremate.user.controller;
 
 import com.example.caremate.framework.dto.AuthRequest;
 import com.example.caremate.framework.dto.AuthResponse;
+import com.example.caremate.framework.model.UserRoles;
 import com.example.caremate.framework.service.AuthService;
-import com.example.caremate.user.command.DoctorRegisterCommand;
-import com.example.caremate.user.command.ResetPasswordCommand;
-import com.example.caremate.user.command.UserRegisterCommand;
-import com.example.caremate.user.command.UserUpdateCommand;
+import com.example.caremate.user.command.*;
 import com.example.caremate.user.dto.UserResponseDTO;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.service.UserService;
@@ -14,6 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -83,5 +82,32 @@ public class UserController {
         return ResponseEntity.ok(message);
     }
 
+    @GetMapping("/api/user/count/by/{role}")
+    public ResponseEntity<Long> countUsersByRole(@PathVariable String role) {
+        UserRoles userRole;
+        try {
+            userRole = UserRoles.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        long count = userService.countUsersByRole(userRole);
+        return ResponseEntity.ok(count);
+    }
+
+    @PostMapping("/api/admin/register")
+    public ResponseEntity<AdminRegisterCommand> registerAdmin(@RequestBody AdminRegisterCommand request) {
+        try {
+            AdminRegisterCommand response = userService.registerAdmin(request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (RuntimeException e) {
+            AdminRegisterCommand errorResponse = new AdminRegisterCommand();
+            errorResponse.setMessage(e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        } catch (Exception e) {
+            AdminRegisterCommand errorResponse = new AdminRegisterCommand();
+            errorResponse.setMessage("An error occurred during registration");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
 
 }

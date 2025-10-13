@@ -1,10 +1,7 @@
 package com.example.caremate.user.service;
 
 import com.example.caremate.framework.model.UserRoles;
-import com.example.caremate.user.command.DoctorRegisterCommand;
-import com.example.caremate.user.command.ResetPasswordCommand;
-import com.example.caremate.user.command.UserRegisterCommand;
-import com.example.caremate.user.command.UserUpdateCommand;
+import com.example.caremate.user.command.*;
 import com.example.caremate.user.dto.UserResponseDTO;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.entity.UserStatus;
@@ -84,6 +81,8 @@ public class UserService {
             switch (key) {
                 case "fullName" -> user.setFullName((String) value);
                 case "mobile" -> user.setMobile((String) value);
+                case "specialist" -> user.setSpecialist((String) value);
+                case "location" -> user.setLocation((String) value);
                 case "roles" -> {
                     try {
                         user.setRoles(UserRoles.valueOf(value.toString().toUpperCase()));
@@ -201,6 +200,47 @@ public class UserService {
         response.setSpecialist(newUser.getSpecialist());
         response.setLocation(newUser.getLocation());
         response.setMessage("User registered successfully!");
+        return response;
+    }
+
+    public long countUsersByRole(UserRoles role) {
+        return userRepository.countByRoles(role);
+    }
+
+    public AdminRegisterCommand registerAdmin(AdminRegisterCommand request) {
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email already in use: " + request.getEmail());
+        }
+
+        if (request.getPassword() == null || request.getPassword().length() <= 5) {
+            throw new RuntimeException("Password must be at least 5 characters long");
+        }
+
+        if (userRepository.existsByMobile(request.getMobile())) {
+            throw new RuntimeException("Mobile already registered: " + request.getMobile());
+        }
+
+        User newUser = new User();
+        newUser.setEmail(request.getEmail());
+        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
+        newUser.setFullName(request.getFullName());
+        newUser.setMobile(request.getMobile());
+        newUser.setRoles(request.getRoles());
+        newUser.setStatus(UserStatus.ACTIVE);
+        newUser.setCreatedOn(new Date());
+        newUser.setSpecialist(request.getSpecialist());
+        newUser.setLocation(request.getLocation());
+
+        userRepository.save(newUser);
+
+        AdminRegisterCommand response = new AdminRegisterCommand();
+        response.setEmail(newUser.getEmail());
+        response.setFullName(newUser.getFullName());
+        response.setMobile(newUser.getMobile());
+        response.setRoles(newUser.getRoles());
+        response.setSpecialist(newUser.getSpecialist());
+        response.setLocation(newUser.getLocation());
+        response.setMessage("Admin registered successfully!");
         return response;
     }
 }
