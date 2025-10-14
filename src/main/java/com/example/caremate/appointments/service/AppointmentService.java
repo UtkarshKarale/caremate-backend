@@ -60,6 +60,10 @@ public class AppointmentService {
         return appointmentRepository.findByDoctorId(doctorId);
     }
 
+    public List<Appointment> getTodaysAppointmentsByDoctor(Long doctorId) {
+        return appointmentRepository.findTodaysByDoctorId(doctorId);
+    }
+
     public List<Appointment> getAppointmentsByDate(Date date) {
         return appointmentRepository.findByAppointmentDate(date);
     }

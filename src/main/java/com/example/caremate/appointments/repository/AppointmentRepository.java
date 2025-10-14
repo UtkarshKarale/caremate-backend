@@ -18,4 +18,5 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     @Query("SELECT a FROM Appointment a WHERE a.status = :status ORDER BY a.appointmentTime DESC")
     List<Appointment> findByStatus(AppointmentStatus status);
 
+    List<Appointment> findTodaysByDoctorId(Long doctorId);
 }

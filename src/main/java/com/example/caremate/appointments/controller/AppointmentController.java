@@ -39,6 +39,11 @@ public class AppointmentController {
         return appointmentService.getAppointmentsByDoctor(doctorId);
     }
 
+    @GetMapping("/doctor/{doctorId}/today")
+    public List<Appointment> getTodaysAppointmentsByDoctor(@PathVariable Long doctorId) {
+        return appointmentService.getTodaysAppointmentsByDoctor(doctorId);
+    }
+
     @GetMapping("/date/{date}")
     public List<Appointment> getAppointmentsByDate(
             @PathVariable @DateTimeFormat(pattern = "yyyy-MM-dd") Date date) {
