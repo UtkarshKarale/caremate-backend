@@ -31,7 +31,7 @@ public class AuthService {
     }
 
     public UserRegisterCommand registerUser(UserRegisterCommand command) {
-        command.setMobile("");
+
         command.setRoles(UserRoles.USER);
         return userService.registerUser(command);
     }
