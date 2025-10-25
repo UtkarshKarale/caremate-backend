@@ -15,7 +15,7 @@ public class JwtUtil {
     private final SecretKey key;
 
     private static final String SECRET_KEY_BASE64 = "VXhqR3RCWUJiY01FUzhwVzZ5RDBsRVNIM0RYVE1iRkhMSmxsV1BMTDhEcz0=";
-    private static final long EXPIRATION_TIME = 86400000L;
+    private static final long EXPIRATION_TIME = 1000L * 60 * 60 * 24 * 365;
 
     public JwtUtil() {
         byte[] decodedKey = Base64.getDecoder().decode(SECRET_KEY_BASE64);
