@@ -50,6 +50,6 @@ public class AuthService {
         }
 
         String token = jwtUtil.generateToken(user);
-        return new AuthResponse(token, user.getRoles());
+        return new AuthResponse(token, user.getRoles(), user);
     }
 }
