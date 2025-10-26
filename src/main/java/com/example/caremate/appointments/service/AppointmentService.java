@@ -97,4 +97,7 @@ public class AppointmentService {
         return appointmentRepository.save(appointment);
     }
 
+    public List<Appointment> geAllAppointments() {
+    return appointmentRepository.findAll();
+    }
 }

@@ -55,6 +55,11 @@ public class AppointmentController {
         return appointmentService.getAppointmentsByStatus(status);
     }
 
+    @GetMapping("/all")
+    public List<Appointment> getAppointmentsByStatus() {
+        return appointmentService.geAllAppointments();
+    }
+
     @PutMapping(value = "/update/{id}")
     public ResponseEntity<Appointment> updateAppointment(
             @PathVariable Long id,
