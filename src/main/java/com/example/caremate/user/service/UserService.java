@@ -243,4 +243,21 @@ public class UserService {
         response.setMessage("Admin registered successfully!");
         return response;
     }
+
+    public List<User> getLatestUsers() {
+        return userRepository.findTop5ByRolesOrderByCreatedOnDesc(UserRoles.USER);
+    }
+
+    public List<User> getLatestDoctors() {
+        return userRepository.findTop5ByRolesOrderByCreatedOnDesc(UserRoles.DOCTOR);
+    }
+
+    public List<User> getLatestReceptionists() {
+        return userRepository.findTop5ByRolesOrderByCreatedOnDesc(UserRoles.RECEPTIONIST);
+    }
+
+    public List<User> getLatestUsersByRole(UserRoles role, int limit) {
+        return userRepository.findLatestUsersByRole(role,
+                org.springframework.data.domain.PageRequest.of(0, limit));
+    }
 }

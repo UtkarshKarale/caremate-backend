@@ -110,4 +110,33 @@ public class UserController {
         }
     }
 
+    @GetMapping("/api/user/latest/users")
+    public ResponseEntity<List<User>> getLatestUsers() {
+        return ResponseEntity.ok(userService.getLatestUsers());
+    }
+
+    @GetMapping("/api/user/latest/doctors")
+    public ResponseEntity<List<User>> getLatestDoctors() {
+        return ResponseEntity.ok(userService.getLatestDoctors());
+    }
+
+    @GetMapping("/api/user/latest/receptionists")
+    public ResponseEntity<List<User>> getLatestReceptionists() {
+        return ResponseEntity.ok(userService.getLatestReceptionists());
+    }
+
+    // Optional: Generic endpoint with query parameter
+    @GetMapping("/api/user/latest/by-role")
+    public ResponseEntity<List<User>> getLatestUsersByRole(
+            @RequestParam String role,
+            @RequestParam(defaultValue = "5") int limit) {
+        UserRoles userRole;
+        try {
+            userRole = UserRoles.valueOf(role.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().build();
+        }
+        return ResponseEntity.ok(userService.getLatestUsersByRole(userRole, limit));
+    }
+
 }
