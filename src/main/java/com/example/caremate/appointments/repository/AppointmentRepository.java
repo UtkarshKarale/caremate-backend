@@ -5,6 +5,7 @@ import com.example.caremate.appointments.entity.AppointmentStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import java.awt.print.Pageable;
 import java.util.Date;
 import java.util.List;
 
@@ -21,4 +22,7 @@ public interface AppointmentRepository extends JpaRepository<Appointment, Long> 
     List<Appointment> findTodaysByDoctorId(Long doctorId);
 
     List<Appointment> findAll();
+
+    @Query("SELECT a FROM Appointment a ORDER BY a.createdOn DESC")
+    List<Appointment> findLatestAppointments(Pageable pageable);
 }

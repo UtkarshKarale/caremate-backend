@@ -7,10 +7,12 @@ import com.example.caremate.appointments.entity.AppointmentStatus;
 import com.example.caremate.appointments.repository.AppointmentRepository;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.awt.print.Pageable;
 import java.util.Date;
 import java.util.List;
 
@@ -99,5 +101,10 @@ public class AppointmentService {
 
     public List<Appointment> geAllAppointments() {
     return appointmentRepository.findAll();
+    }
+
+    public List<Appointment> getLatestAppointments(int limit) {
+        Pageable pageable = (Pageable) PageRequest.of(0, limit);
+        return appointmentRepository.findLatestAppointments(pageable);
     }
 }

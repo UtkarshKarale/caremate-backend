@@ -67,4 +67,10 @@ public class AppointmentController {
         Appointment updatedAppointment = appointmentService.updateAppointment(id, command);
         return ResponseEntity.ok(updatedAppointment);
     }
+
+    @GetMapping("/latest")
+    public List<Appointment> getLatestAppointments(
+            @RequestParam(defaultValue = "5") int limit) {
+        return appointmentService.getLatestAppointments(limit);
+    }
 }
