@@ -2,7 +2,9 @@ package com.example.caremate.doctorInfo.service;
 
 import com.example.caremate.doctorInfo.dto.DoctorInfoDTO;
 import com.example.caremate.doctorInfo.entity.DoctorInfo;
+import com.example.caremate.doctorInfo.exception.DoctorInfoNotFoundException;
 import com.example.caremate.doctorInfo.repository.DoctorInfoRepository;
+import com.example.caremate.prescription.exception.DoctorNotFoundException;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,10 +19,9 @@ public class DoctorInfoService {
     @Autowired
     private UserRepository userRepository;
 
-    // ✅ Register Doctor Info
     public DoctorInfo registerDoctorInfo(DoctorInfoDTO dto) {
         User doctor = userRepository.findById(dto.getDoctorId())
-                .orElseThrow(() -> new RuntimeException("Doctor not found with ID: " + dto.getDoctorId()));
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor not found with ID: " + dto.getDoctorId()));
 
         DoctorInfo info = new DoctorInfo();
         info.setDoctor(doctor);
@@ -35,17 +36,17 @@ public class DoctorInfoService {
 
     public DoctorInfo getDoctorInfoByDoctorId(Long doctorId) {
         User doctor = userRepository.findById(doctorId)
-                .orElseThrow(() -> new RuntimeException("Doctor not found with ID: " + doctorId));
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor not found with ID: " + doctorId));
 
         return doctorInfoRepository.findByDoctor(doctor)
-                .orElseThrow(() -> new RuntimeException("Doctor info not found for doctor ID: " + doctorId));
+                .orElseThrow(() -> new DoctorInfoNotFoundException("Doctor info not found for doctor ID: " + doctorId));
     }
 
     public DoctorInfo updateDoctorInfo(Long doctorId, DoctorInfoDTO dto) {
         DoctorInfo existingInfo = doctorInfoRepository.findByDoctorId(doctorId);
 
         if (existingInfo == null) {
-            throw new RuntimeException("Doctor info not found for doctor id: " + doctorId);
+            throw new DoctorInfoNotFoundException("Doctor info not found for doctor ID: " + doctorId);
         }
 
         if (dto.getSpecialization() != null) {
@@ -66,5 +67,4 @@ public class DoctorInfoService {
 
         return doctorInfoRepository.save(existingInfo);
     }
-
 }

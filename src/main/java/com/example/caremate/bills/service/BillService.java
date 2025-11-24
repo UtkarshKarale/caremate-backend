@@ -6,9 +6,13 @@ import com.example.caremate.bills.dto.*;
 import com.example.caremate.bills.entity.Bill;
 import com.example.caremate.bills.entity.BillItem;
 import com.example.caremate.bills.entity.BillStatus;
+import com.example.caremate.bills.exception.BillNotFoundException;
 import com.example.caremate.bills.repository.BillRepository;
+import com.example.caremate.patientRecords.exception.AppointmentNotFoundException;
 import com.example.caremate.prescription.dto.PatientInfo;
 import com.example.caremate.prescription.entity.Prescription;
+import com.example.caremate.prescription.exception.PatientNotFoundException;
+import com.example.caremate.prescription.exception.PrescriptionNotFoundException;
 import com.example.caremate.prescription.repository.PrescriptionRepository;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.repository.UserRepository;
@@ -39,11 +43,9 @@ public class BillService {
 
     @Transactional
     public BillResponse createBill(CreateBillRequest request) {
-        // Validate patient
         User patient = userRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new RuntimeException("Patient not found with id: " + request.getPatientId()));
+                .orElseThrow(() -> new PatientNotFoundException("Patient not found with id: " + request.getPatientId()));
 
-        // Create bill
         Bill bill = new Bill();
         bill.setBillNumber(generateBillNumber());
         bill.setPatient(patient);
@@ -56,14 +58,12 @@ public class BillService {
         bill.setNotes(request.getNotes());
         bill.setCreatedOn(new Date());
 
-        // Set appointment if provided
         if (request.getAppointmentId() != null) {
             Appointment appointment = appointmentRepository.findById(request.getAppointmentId())
-                    .orElseThrow(() -> new RuntimeException("Appointment not found with id: " + request.getAppointmentId()));
+                    .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found with id: " + request.getAppointmentId()));
             bill.setAppointment(appointment);
         }
 
-        // Add bill items
         if (request.getBillItems() != null && !request.getBillItems().isEmpty()) {
             for (BillItemRequest itemReq : request.getBillItems()) {
                 BillItem billItem = new BillItem();
@@ -74,10 +74,9 @@ public class BillService {
                 billItem.setUnitPrice(itemReq.getUnitPrice());
                 billItem.setTotalPrice(itemReq.getUnitPrice().multiply(BigDecimal.valueOf(itemReq.getQuantity())));
 
-                // Set prescription if provided
                 if (itemReq.getPrescriptionId() != null) {
                     Prescription prescription = prescriptionRepository.findById(itemReq.getPrescriptionId())
-                            .orElseThrow(() -> new RuntimeException("Prescription not found with id: " + itemReq.getPrescriptionId()));
+                            .orElseThrow(() -> new PrescriptionNotFoundException("Prescription not found with id: " + itemReq.getPrescriptionId()));
                     billItem.setPrescription(prescription);
                 }
 
@@ -85,7 +84,6 @@ public class BillService {
             }
         }
 
-        // Calculate totals
         bill.calculateTotals();
 
         Bill savedBill = billRepository.save(bill);
@@ -94,13 +92,13 @@ public class BillService {
 
     public BillResponse getBillById(Long id) {
         Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
+                .orElseThrow(() -> new BillNotFoundException("Bill not found with id: " + id));
         return convertToResponse(bill);
     }
 
     public BillResponse getBillByNumber(String billNumber) {
         Bill bill = billRepository.findByBillNumber(billNumber)
-                .orElseThrow(() -> new RuntimeException("Bill not found with number: " + billNumber));
+                .orElseThrow(() -> new BillNotFoundException("Bill not found with number: " + billNumber));
         return convertToResponse(bill);
     }
 
@@ -120,7 +118,7 @@ public class BillService {
 
     public BillResponse getBillByAppointmentId(Long appointmentId) {
         Bill bill = billRepository.findByAppointmentId(appointmentId)
-                .orElseThrow(() -> new RuntimeException("Bill not found for appointment id: " + appointmentId));
+                .orElseThrow(() -> new BillNotFoundException("Bill not found for appointment id: " + appointmentId));
         return convertToResponse(bill);
     }
 
@@ -162,9 +160,8 @@ public class BillService {
     @Transactional
     public BillResponse updateBill(Long id, CreateBillRequest request) {
         Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
+                .orElseThrow(() -> new BillNotFoundException("Bill not found with id: " + id));
 
-        // Update basic fields
         bill.setBillDate(request.getBillDate());
         bill.setDiscountAmount(request.getDiscountAmount() != null ? request.getDiscountAmount() : BigDecimal.ZERO);
         bill.setTaxAmount(request.getTaxAmount() != null ? request.getTaxAmount() : BigDecimal.ZERO);
@@ -172,7 +169,6 @@ public class BillService {
         bill.setNotes(request.getNotes());
         bill.setUpdatedOn(new Date());
 
-        // Update bill items - remove old and add new
         bill.getBillItems().clear();
         if (request.getBillItems() != null && !request.getBillItems().isEmpty()) {
             for (BillItemRequest itemReq : request.getBillItems()) {
@@ -186,7 +182,7 @@ public class BillService {
 
                 if (itemReq.getPrescriptionId() != null) {
                     Prescription prescription = prescriptionRepository.findById(itemReq.getPrescriptionId())
-                            .orElseThrow(() -> new RuntimeException("Prescription not found with id: " + itemReq.getPrescriptionId()));
+                            .orElseThrow(() -> new PrescriptionNotFoundException("Prescription not found with id: " + itemReq.getPrescriptionId()));
                     billItem.setPrescription(prescription);
                 }
 
@@ -194,7 +190,6 @@ public class BillService {
             }
         }
 
-        // Recalculate totals
         bill.calculateTotals();
 
         Bill updatedBill = billRepository.save(bill);
@@ -204,7 +199,7 @@ public class BillService {
     @Transactional
     public BillResponse makePayment(Long id, PaymentRequest request) {
         Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
+                .orElseThrow(() -> new BillNotFoundException("Bill not found with id: " + id));
 
         BigDecimal currentPaid = bill.getPaidAmount() != null ? bill.getPaidAmount() : BigDecimal.ZERO;
         BigDecimal newPaidAmount = currentPaid.add(request.getAmount());
@@ -213,7 +208,6 @@ public class BillService {
         bill.setPaymentMethod(request.getPaymentMethod());
         bill.setDueAmount(bill.getTotalAmount().subtract(newPaidAmount));
 
-        // Update status based on payment
         if (bill.getDueAmount().compareTo(BigDecimal.ZERO) == 0) {
             bill.setStatus(BillStatus.PAID);
         } else if (newPaidAmount.compareTo(BigDecimal.ZERO) > 0) {
@@ -229,7 +223,7 @@ public class BillService {
     @Transactional
     public void deleteBill(Long id) {
         if (!billRepository.existsById(id)) {
-            throw new RuntimeException("Bill not found with id: " + id);
+            throw new BillNotFoundException("Bill not found with id: " + id);
         }
         billRepository.deleteById(id);
     }
@@ -237,7 +231,7 @@ public class BillService {
     @Transactional
     public BillResponse cancelBill(Long id) {
         Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
+                .orElseThrow(() -> new BillNotFoundException("Bill not found with id: " + id));
 
         bill.setStatus(BillStatus.CANCELLED);
         bill.setUpdatedOn(new Date());
@@ -246,12 +240,10 @@ public class BillService {
         return convertToResponse(cancelledBill);
     }
 
-    // Helper method to generate unique bill number
     private String generateBillNumber() {
         return "BILL-" + System.currentTimeMillis() + "-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 
-    // Convert entity to response DTO
     private BillResponse convertToResponse(Bill bill) {
         PatientInfo patientInfo = new PatientInfo();
         patientInfo.setId(bill.getPatient().getId());

@@ -4,13 +4,15 @@ import com.example.caremate.appointments.command.UpdateAppointmentCommand;
 import com.example.caremate.appointments.dto.AppointmentRequest;
 import com.example.caremate.appointments.entity.Appointment;
 import com.example.caremate.appointments.entity.AppointmentStatus;
+import com.example.caremate.appointments.exception.InvalidAppointmentPriceException;
 import com.example.caremate.appointments.repository.AppointmentRepository;
+import com.example.caremate.patientRecords.exception.AppointmentNotFoundException;
+import com.example.caremate.prescription.exception.DoctorNotFoundException;
+import com.example.caremate.prescription.exception.PatientNotFoundException;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.repository.UserRepository;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.awt.print.Pageable;
 import java.util.Date;
@@ -29,16 +31,16 @@ public class AppointmentService {
 
     public Appointment applyAppointment(AppointmentRequest request) {
         User patient = userRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new RuntimeException("Patient not found"));
+                .orElseThrow(() -> new PatientNotFoundException("Patient not found with id: " + request.getPatientId()));
 
         User doctor = null;
         if (request.getDoctorId() != null) {
             doctor = userRepository.findById(request.getDoctorId())
-                    .orElseThrow(() -> new RuntimeException("Doctor not found"));
+                    .orElseThrow(() -> new DoctorNotFoundException("Doctor not found with id: " + request.getDoctorId()));
         }
 
         if (request.getPrice() == null || request.getPrice() < 0) {
-            throw new RuntimeException("Invalid appointment price");
+            throw new InvalidAppointmentPriceException("Invalid appointment price: " + request.getPrice());
         }
 
         Appointment appointment = Appointment.builder()
@@ -76,20 +78,20 @@ public class AppointmentService {
 
     public Appointment updateAppointment(Long id, UpdateAppointmentCommand command) {
         Appointment appointment = appointmentRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Appointment not found"));
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found with id: " + id));
 
-        // Partial updates
         if (command.getPatient() != null) {
             User patient = userRepository.findById(command.getPatient())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Patient not found"));
+                    .orElseThrow(() -> new PatientNotFoundException("Patient not found with id: " + command.getPatient()));
             appointment.setPatient(patient);
         }
 
         if (command.getDoctor() != null) {
             User doctor = userRepository.findById(command.getDoctor())
-                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Doctor not found"));
+                    .orElseThrow(() -> new DoctorNotFoundException("Doctor not found with id: " + command.getDoctor()));
             appointment.setDoctor(doctor);
         }
+
         if (command.getDisease() != null) appointment.setDisease(command.getDisease());
         if (command.getAppointmentTime() != null) appointment.setAppointmentTime(command.getAppointmentTime());
         if (command.getStatus() != null) appointment.setStatus(command.getStatus());
@@ -100,11 +102,10 @@ public class AppointmentService {
     }
 
     public List<Appointment> geAllAppointments() {
-    return appointmentRepository.findAll();
+        return appointmentRepository.findAll();
     }
 
     public List<Appointment> getLatestAppointments(int limit) {
-        Pageable pageable = (Pageable) PageRequest.of(0, limit);
-        return appointmentRepository.findLatestAppointments(pageable);
+        return appointmentRepository.findLatestAppointments((Pageable) PageRequest.of(0, limit));
     }
 }

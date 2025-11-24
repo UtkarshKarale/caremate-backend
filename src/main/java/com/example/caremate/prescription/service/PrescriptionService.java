@@ -3,6 +3,7 @@ package com.example.caremate.prescription.service;
 import com.example.caremate.medicines.entity.Medicine;
 import com.example.caremate.prescription.dto.*;
 import com.example.caremate.prescription.entity.Prescription;
+import com.example.caremate.prescription.exception.*;
 import com.example.caremate.prescription.repository.PrescriptionRepository;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.repository.UserRepository;
@@ -26,12 +27,11 @@ public class PrescriptionService {
     @Transactional
     public PrescriptionResponse createPrescription(CreatePrescriptionRequest request) {
         User patient = userRepository.findById(request.getPatientId())
-                .orElseThrow(() -> new RuntimeException("Patient not found with id: " + request.getPatientId()));
+                .orElseThrow(() -> new PatientNotFoundException("Patient not found with id: " + request.getPatientId()));
 
         User doctor = userRepository.findById(request.getDoctorId())
-                .orElseThrow(() -> new RuntimeException("Doctor not found with id: " + request.getDoctorId()));
+                .orElseThrow(() -> new DoctorNotFoundException("Doctor not found with id: " + request.getDoctorId()));
 
-        // Create prescription
         Prescription prescription = new Prescription();
         prescription.setPatient(patient);
         prescription.setDoctor(doctor);
@@ -58,10 +58,9 @@ public class PrescriptionService {
         return convertToResponse(savedPrescription);
     }
 
-
     public PrescriptionResponse getPrescriptionById(Long id) {
         Prescription prescription = prescriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Prescription not found with id: " + id));
+                .orElseThrow(() -> new PrescriptionNotFoundException("Prescription not found with id: " + id));
         return convertToResponse(prescription);
     }
 
@@ -107,16 +106,14 @@ public class PrescriptionService {
     @Transactional
     public PrescriptionResponse updatePrescription(Long id, CreatePrescriptionRequest request) {
         Prescription prescription = prescriptionRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Prescription not found with id: " + id));
+                .orElseThrow(() -> new PrescriptionNotFoundException("Prescription not found with id: " + id));
 
-        // Update basic fields
         prescription.setDiagnosis(request.getDiagnosis());
         prescription.setSymptoms(request.getSymptoms());
         prescription.setNotes(request.getNotes());
         prescription.setPrescriptionDate(request.getPrescriptionDate());
         prescription.setUpdatedOn(new Date());
 
-        // Update medicines - remove old and add new
         prescription.getMedicines().clear();
         if (request.getMedicines() != null && !request.getMedicines().isEmpty()) {
             for (MedicineRequest medicineReq : request.getMedicines()) {
@@ -137,12 +134,11 @@ public class PrescriptionService {
     @Transactional
     public void deletePrescription(Long id) {
         if (!prescriptionRepository.existsById(id)) {
-            throw new RuntimeException("Prescription not found with id: " + id);
+            throw new PrescriptionNotFoundException("Prescription not found with id: " + id);
         }
         prescriptionRepository.deleteById(id);
     }
 
-    // Convert entity to response DTO
     private PrescriptionResponse convertToResponse(Prescription prescription) {
         PatientInfo patientInfo = new PatientInfo();
         patientInfo.setId(prescription.getPatient().getId());
@@ -177,7 +173,7 @@ public class PrescriptionService {
         response.setDoctor(doctorInfo);
         response.setDiagnosis(prescription.getDiagnosis());
         response.setSymptoms(prescription.getSymptoms());
-        response.setNotes(prescription.getNotes());
+        response.setNotes(response.getNotes());
         response.setPrescriptionDate(prescription.getPrescriptionDate());
         response.setMedicines(medicines);
         response.setCreatedOn(prescription.getCreatedOn());

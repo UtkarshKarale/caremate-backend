@@ -5,17 +5,16 @@ import com.example.caremate.user.command.*;
 import com.example.caremate.user.dto.UserResponseDTO;
 import com.example.caremate.user.entity.User;
 import com.example.caremate.user.entity.UserStatus;
+import com.example.caremate.user.exception.*;
 import com.example.caremate.user.repository.UserRepository;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.*;
 
@@ -26,24 +25,23 @@ public class UserService {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private  PasswordEncoder passwordEncoder;
+    private PasswordEncoder passwordEncoder;
     @Autowired
-    private  JavaMailSender mailSender;
-
+    private JavaMailSender mailSender;
     @Autowired
     private ObjectMapper objectMapper;
 
     public UserRegisterCommand registerUser(UserRegisterCommand request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already in use: " + request.getEmail());
+            throw new UserAlreadyExistException("Email already in use: " + request.getEmail());
         }
 
         if (request.getPassword() == null || request.getPassword().length() <= 5) {
-            throw new RuntimeException("Password must be at least 5 characters long");
+            throw new InvalidFormatPasswordException("Password must be at least 6 characters long");
         }
 
         if (userRepository.existsByMobile(request.getMobile())) {
-            throw new RuntimeException("Mobile already registered: " + request.getMobile());
+            throw new MobileAlreadyRegisteredException("Mobile already registered: " + request.getMobile());
         }
 
         User newUser = new User();
@@ -68,13 +66,13 @@ public class UserService {
 
     public UserResponseDTO updateUserRequiredFields(Long id, UserUpdateCommand command) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
 
         Map<String, Object> updates = objectMapper.convertValue(command, new TypeReference<>() {});
         updates.entrySet().removeIf(entry -> entry.getValue() == null);
 
         if (updates.isEmpty()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No valid fields provided for update");
+            throw new NoValidFieldsException("No valid fields provided for update");
         }
 
         updates.forEach((key, value) -> {
@@ -87,17 +85,17 @@ public class UserService {
                     try {
                         user.setRoles(UserRoles.valueOf(value.toString().toUpperCase()));
                     } catch (IllegalArgumentException e) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid role value");
+                        throw new InvalidRoleException("Invalid role value: " + value);
                     }
                 }
                 case "status" -> {
                     try {
                         user.setStatus(UserStatus.valueOf(value.toString().toUpperCase()));
                     } catch (IllegalArgumentException e) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid status value");
+                        throw new InvalidStatusException("Invalid status value: " + value);
                     }
                 }
-                default -> throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid field: " + key);
+                default -> throw new InvalidFieldException("Invalid field: " + key);
             }
         });
 
@@ -105,26 +103,22 @@ public class UserService {
         return new UserResponseDTO(savedUser);
     }
 
-    // ✅ Find user by ID
     public User findUserById(Long id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+                .orElseThrow(() -> new UserNotFoundException("User not found with ID: " + id));
     }
 
-    // ✅ Fetch all users
     public List<User> lookUpAllUsers() {
         return userRepository.findAll();
     }
 
-    // ✅ Fetch all active users
     public List<User> getAllActiveUsers() {
         return userRepository.findAllByStatus(UserStatus.ACTIVE);
     }
 
-    // ✅ Generate reset code & send email
     public String generateResetCodeAndSendToEmail(String email) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No user found with this email"));
+                .orElseThrow(() -> new UserNotFoundException("No user found with email: " + email));
 
         String resetCode = UUID.randomUUID().toString().substring(0, 8);
         user.setPassword(passwordEncoder.encode(resetCode));
@@ -143,21 +137,20 @@ public class UserService {
         mailSender.send(message);
     }
 
-    // ✅ Reset password with verification
     public String resetPasswordAfterVerification(ResetPasswordCommand request) {
         User user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "No user found with this email"));
+                .orElseThrow(() -> new UserNotFoundException("No user found with email: " + request.getEmail()));
 
         if (!passwordEncoder.matches(request.getResetCode(), user.getPassword())) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Reset code is invalid.");
+            throw new InvalidResetCodeException("Reset code is invalid");
         }
 
         if (request.getNewPassword() == null || request.getNewPassword().length() < 6) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password must be at least 6 characters long.");
+            throw new InvalidFormatPasswordException("New password must be at least 6 characters long");
         }
 
         if (!request.getNewPassword().equals(request.getConfirmPassword())) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "New password and confirm password do not match.");
+            throw new PasswordMismatchException("New password and confirm password do not match");
         }
 
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
@@ -168,15 +161,15 @@ public class UserService {
 
     public DoctorRegisterCommand registerDoctor(DoctorRegisterCommand request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already in use: " + request.getEmail());
+            throw new UserAlreadyExistException("Email already in use: " + request.getEmail());
         }
 
         if (request.getPassword() == null || request.getPassword().length() <= 5) {
-            throw new RuntimeException("Password must be at least 5 characters long");
+            throw new InvalidFormatPasswordException("Password must be at least 6 characters long");
         }
 
         if (userRepository.existsByMobile(request.getMobile())) {
-            throw new RuntimeException("Mobile already registered: " + request.getMobile());
+            throw new MobileAlreadyRegisteredException("Mobile already registered: " + request.getMobile());
         }
 
         User newUser = new User();
@@ -199,7 +192,7 @@ public class UserService {
         response.setRoles(newUser.getRoles());
         response.setSpecialist(newUser.getSpecialist());
         response.setLocation(newUser.getLocation());
-        response.setMessage("User registered successfully!");
+        response.setMessage("Doctor registered successfully!");
         return response;
     }
 
@@ -209,15 +202,15 @@ public class UserService {
 
     public AdminRegisterCommand registerAdmin(AdminRegisterCommand request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already in use: " + request.getEmail());
+            throw new UserAlreadyExistException("Email already in use: " + request.getEmail());
         }
 
         if (request.getPassword() == null || request.getPassword().length() <= 5) {
-            throw new RuntimeException("Password must be at least 5 characters long");
+            throw new InvalidFormatPasswordException("Password must be at least 6 characters long");
         }
 
         if (userRepository.existsByMobile(request.getMobile())) {
-            throw new RuntimeException("Mobile already registered: " + request.getMobile());
+            throw new MobileAlreadyRegisteredException("Mobile already registered: " + request.getMobile());
         }
 
         User newUser = new User();
