@@ -1,8 +1,9 @@
 package com.example.caremate.hospital.dto;
 
-import com.example.caremate.hospital.entity.Hospital;
 import com.example.caremate.hospital.entity.HospitalType;
 import lombok.*;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -20,4 +21,5 @@ public class HospitalDTO {
     private Integer totalBeds;
     private HospitalType hospitalType;
     private boolean isActive;
+    private List<HospitalDoctorDTO> assignedDoctors;
 }

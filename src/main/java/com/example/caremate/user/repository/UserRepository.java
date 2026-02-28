@@ -26,6 +26,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     long countByRoles(UserRoles role);
 
+    List<User> findByRoles(UserRoles role);
+
     List<User> findTop5ByRolesOrderByCreatedOnDesc(UserRoles roles);
 
     @Query("SELECT u FROM User u WHERE u.roles = :role ORDER BY u.createdOn DESC")

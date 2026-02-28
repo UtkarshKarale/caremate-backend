@@ -1,7 +1,11 @@
 package com.example.caremate.hospital.entity;
 
+import com.example.caremate.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
 @Table(name = "hospitals")
@@ -38,5 +42,12 @@ public class Hospital {
 
     private boolean isActive = true;
 
-
+    @ManyToMany
+    @JoinTable(
+            name = "hospital_doctors",
+            joinColumns = @JoinColumn(name = "hospital_id"),
+            inverseJoinColumns = @JoinColumn(name = "doctor_id")
+    )
+    @Builder.Default
+    private Set<User> doctors = new HashSet<>();
 }

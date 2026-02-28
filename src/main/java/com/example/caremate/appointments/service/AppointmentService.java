@@ -76,6 +76,11 @@ public class AppointmentService {
         return appointmentRepository.findByStatus(status);
     }
 
+    public Appointment getAppointmentById(Long id) {
+        return appointmentRepository.findById(id)
+                .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found with id: " + id));
+    }
+
     public Appointment updateAppointment(Long id, UpdateAppointmentCommand command) {
         Appointment appointment = appointmentRepository.findById(id)
                 .orElseThrow(() -> new AppointmentNotFoundException("Appointment not found with id: " + id));

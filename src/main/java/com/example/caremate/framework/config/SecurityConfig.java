@@ -20,6 +20,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.http.HttpMethod;
 
 import java.util.List;
 
@@ -87,6 +88,10 @@ public class SecurityConfig {
                         .requestMatchers("/api/user/forgot-password").hasAnyAuthority(UserRoles.ALL())
                         .requestMatchers("/api/user/lookup/status").hasAnyAuthority("USER","ADMIN")
                         .requestMatchers("/api/user/lookup/all/users/*").hasAnyAuthority(UserRoles.ALL())
+                        .requestMatchers(HttpMethod.GET, "/api/hospitals/**").hasAnyAuthority(UserRoles.ALL())
+                        .requestMatchers(HttpMethod.POST, "/api/hospitals/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/api/hospitals/**").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/hospitals/**").hasAuthority("ADMIN")
 
                         .anyRequest().authenticated()
 
